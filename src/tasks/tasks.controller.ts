@@ -1,25 +1,26 @@
-
 import { Controller, Get, Post, Body, Param, Delete, Patch, Query, UsePipes, ValidationPipe, ParseIntPipe, UseGuards, Logger } from '@nestjs/common';
-import { CreateTaskDto } from './dto/create-task.dto';
-import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
-import { TaskStatusValidationPipe } from './pipes/task-status-validation.pipe';
-import { TaskStatus } from './task-status.enum';
-import { Task } from './task.model';
 import { TasksService } from './tasks.service';
+import { CreateTaskDto } from './dto/create-task.dto';
+import { TaskStatusValidationPipe } from './pipes/task-status-validation.pipe';
+import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
+import { Task } from './task.entity';
+import { TaskStatus } from './task-status.enum';
 
 @Controller('tasks')
 export class TasksController {
   constructor(private tasksService: TasksService) { }
 
   @Get()
-  getTasks(@Query(ValidationPipe) filterDto: GetTasksFilterDto): Task[] {
+  getTasks(
+    @Query(ValidationPipe) filterDto: GetTasksFilterDto
+  ): Promise<Task[]> {
     return this.tasksService.getTasks(filterDto);
   }
 
   @Get('/:id')
   getTaskById(
-    @Param('id') id: string,
-  ): Task {
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<Task> {
     return this.tasksService.getTaskById(id);
   }
 
@@ -27,22 +28,22 @@ export class TasksController {
   @UsePipes(ValidationPipe)
   createTask(
     @Body() createTaskDto: CreateTaskDto,
-  ): Task {
+  ): Promise<Task> {
     return this.tasksService.createTask(createTaskDto);
   }
 
   @Delete('/:id')
   deleteTask(
-    @Param('id') id: string,
-  ) {
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<void> {
     return this.tasksService.deleteTask(id);
   }
 
   @Patch('/:id/status')
   updateTaskStatus(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body('status', TaskStatusValidationPipe) status: TaskStatus,
-  ): Task {
+  ): Promise<Task> {
     return this.tasksService.updateTaskStatus(id, status);
   }
 }
